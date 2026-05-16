@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// SIGNUP
 router.post("/signup", async (req, res) => {
   try {
     const { firstName, lastName, email, phone, password } = req.body;
@@ -18,7 +20,7 @@ router.post("/signup", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const newUser = await User.create({
       firstName,
       lastName,
       email,
@@ -33,26 +35,39 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+// LOGIN
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // 1. Check if data exists
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password required" });
     }
 
+    // 2. Find User
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // 3. Check Password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Wrong password" });
     }
 
+    // 4. GENERATE TOKEN (The "Digital ID Card")
+    // We sign it with our secret key so nobody can fake it
+    const token = jwt.sign(
+      { id: user._id, email: user.email }, // Data inside the token
+      process.env.JWT_SECRET || "default_secret", // Secret Key (Best to put in .env)
+      { expiresIn: "1h" } // Expires in 1 hour
+    );
+
     res.json({
       message: "Login successful",
+      token, // <--- SEND THE TOKEN
       user: {
         id: user._id,
         firstName: user.firstName,
