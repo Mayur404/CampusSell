@@ -57,17 +57,29 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Wrong password" });
     }
 
+<<<<<<< HEAD
     // 4. GENERATE TOKEN (The "Digital ID Card")
     // We sign it with our secret key so nobody can fake it
     const token = jwt.sign(
       { id: user._id, email: user.email }, // Data inside the token
       process.env.JWT_SECRET || "default_secret", // Secret Key (Best to put in .env)
       { expiresIn: "1h" } // Expires in 1 hour
+=======
+    // Generate JWT Token
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" } // Token expires in 1 day
+>>>>>>> 92470eebf65152c8fe69d0584ccf0c28d59dc2ae
     );
 
     res.json({
       message: "Login successful",
+<<<<<<< HEAD
       token, // <--- SEND THE TOKEN
+=======
+      token, // Send the token to the frontend
+>>>>>>> 92470eebf65152c8fe69d0584ccf0c28d59dc2ae
       user: {
         id: user._id,
         firstName: user.firstName,
